@@ -1,0 +1,10 @@
+# virtual environment
+quiz_venv/
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# SQLite database file
+db.sqlite3
+*.sqlite3
