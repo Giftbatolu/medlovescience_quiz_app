@@ -1,10 +1,15 @@
 from django.urls import path, include
 from . import views
-from rest_framework.routers import DefaultRouter
+from rest_framework_nested import routers
 
-router = DefaultRouter()
-router.register('', views.QuizViewSet)
+router = routers.SimpleRouter()
+router.register(r'', views.QuizViewSet)
+
+question_router = routers.NestedSimpleRouter(router, r'', lookup='quiz')
+question_router.register(r'questions', views.QuestionViewSet, basename='quiz-questions')
+# basename='quiz-questions'
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path(r'', include(router.urls)),
+    path(r'', include(question_router.urls)),
 ]

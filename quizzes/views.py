@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from . serializers import QuizSerializer, QuizListSerializer, QuizDetailSerializer
+from . serializers import QuizSerializer, QuizListSerializer, QuizDetailSerializer, QuestionSerializer
 from .models import Quiz, Question, Option
 from rest_framework import generics, viewsets
 
@@ -12,4 +12,10 @@ class QuizViewSet(viewsets.ModelViewSet):
             return QuizListSerializer
         elif self.action == 'retrieve':
             return QuizDetailSerializer
-        return super().get_serializer_class()        
+        return super().get_serializer_class()
+
+class QuestionViewSet(viewsets.ModelViewSet):
+    serializer_class = QuestionSerializer
+
+    def get_queryset(self):
+        return Question.objects.filter(quiz_id=self.kwargs['quiz_pk'])
