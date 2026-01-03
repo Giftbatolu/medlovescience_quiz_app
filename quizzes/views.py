@@ -1,7 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404
 from . serializers import QuizSerializer, QuizListSerializer, QuizDetailSerializer, QuestionSerializer
 from .models import Quiz, Question, Option
-from rest_framework import generics, viewsets
+from rest_framework import viewsets
 
 class QuizViewSet(viewsets.ModelViewSet):
     queryset = Quiz.objects.all()
@@ -19,3 +19,7 @@ class QuestionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Question.objects.filter(quiz_id=self.kwargs['quiz_pk'])
+
+    def perform_create(self, serializer):
+    quiz = get_object_or_404(Quiz, pk=self.kwargs.get('quiz_pk'))
+    serializer.save(quiz=quiz)
