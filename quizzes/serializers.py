@@ -33,6 +33,7 @@ class QuizSerializer(serializers.ModelSerializer):
     class Meta:
         model = Quiz
         fields = [
+            'id',
             'quiz_name',
             'questions'
 
@@ -51,18 +52,29 @@ class QuizSerializer(serializers.ModelSerializer):
 
         return quiz
 
-class QuestionListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Question
-        fields = [
-            'question_type'
-        ]
 class QuizListSerializer(serializers.ModelSerializer):
-    questions = QuestionListSerializer(many=True)
     class Meta:
         model = Quiz
         fields = [
             'id',
             'quiz_name',
-            'questions'
+        ]
+
+class QuestionDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Question
+        fields = [
+            'id',
+            'question_type',
+        ]
+
+class QuizDetailSerializer(serializers.ModelSerializer):
+    questions = QuestionDetailSerializer(many=True)
+    
+    class Meta:
+        model = Quiz
+        fields = [
+            'id',
+            'quiz_name',
+            'questions',
         ]
