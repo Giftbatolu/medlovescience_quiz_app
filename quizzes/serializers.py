@@ -29,7 +29,7 @@ class QuestionSerializer(serializers.ModelSerializer):
         return question
 
 class QuizSerializer(serializers.ModelSerializer):
-    questions = QuestionSerializer(many=True)
+    questions = QuestionSerializer(many=True, required=False)
     class Meta:
         model = Quiz
         fields = [
@@ -52,6 +52,12 @@ class QuizSerializer(serializers.ModelSerializer):
 
         return quiz
 
+    def update(self, instance, validated_data):
+        # Update quiz fields
+        instance.quiz_name = validated_data.get('quiz_name', instance.quiz_name)
+        instance.save()
+        return instance
+
 class QuizListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Quiz
@@ -64,7 +70,7 @@ class QuestionDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
         fields = [
-            'id',
+
             'question_type',
         ]
 
