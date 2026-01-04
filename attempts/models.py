@@ -1,5 +1,5 @@
 from django.db import models
-from django.cnf import settings
+from django.conf import settings
 from quizzes.models import Quiz, Question
 
 class Attempt(models.Model):
