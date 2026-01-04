@@ -21,5 +21,5 @@ class QuestionViewSet(viewsets.ModelViewSet):
         return Question.objects.filter(quiz_id=self.kwargs['quiz_pk'])
 
     def perform_create(self, serializer):
-    quiz = get_object_or_404(Quiz, pk=self.kwargs.get('quiz_pk'))
-    serializer.save(quiz=quiz)
+        quiz = get_object_or_404(Quiz, pk=self.kwargs.get('quiz_pk'))
+        serializer.save(quiz=quiz)
