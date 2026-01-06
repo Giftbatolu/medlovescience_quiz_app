@@ -206,3 +206,12 @@ class QuizQuestionSerializer(serializers.ModelSerializer):
             'options'
         ]
         list_serializer_class = BulkQuestionListSerializer
+
+    def create(self, validated_data):
+        options_data = validated_data.pop('options', [])
+        question = Question.objects.create(**validated_data)
+
+        for option_data in options_data:
+            Option.objects.create(question=question, **option_data)
+
+        return question
