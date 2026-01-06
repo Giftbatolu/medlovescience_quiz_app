@@ -3,13 +3,36 @@ from . models import Quiz, Question, Option
 from django.db import transaction
 
 class OptionSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Option model
+
+    Field:
+        - id: Primary key of the option
+        - option_text: Options for a quiz
+        is_correct: To check for the correct answer
+    """
     id = serializers.UUIDField(read_only=True)
+
     class Meta:
         model = Option
         fields = ['id', 'option_text', 'is_correct']
 
 class QuestionSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Question model
+
+    This include a nested serializer for option using OptionSerializer.
+    Each question can have multiple option.
+
+    Fields:
+        - id: Primary key for th question
+        - question_type: The question type of the question whether OBJ or MCQ.
+        - question_text: The actual question to answer.
+        - explanation: Explanation for the correct answer.
+        - options: Nested option for Option, which is required.
+    """
     options = OptionSerializer(many=True)
+
     class Meta:
         model = Question
         fields = [
@@ -21,7 +44,30 @@ class QuestionSerializer(serializers.ModelSerializer):
         ]
 
 class QuizSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Quiz model.
+
+    This serializer includes nested serialization for questions using QuestionSerializer.
+    Each question can have multiple options, which are handled during creation.
+
+    Fields:
+        - id: Primary key of the quiz.
+        - quiz_name: Name or title of the quiz.
+        - questions: Nested list of questions associated with the quiz, optional.
+
+    create(validated_data):
+        Overrides the default create method to handle nested question and option data.
+        - Extracts questions data from the validated data.
+        - Uses a database transaction to ensure atomic creation of quiz, questions, and options.
+        - Iterates over each question and its options to create related objects.
+        - Returns the created Quiz instance.
+
+    update(instance, validate):
+        Update the quiz name of the instance of created quiz
+    """
+
     questions = QuestionSerializer(many=True, required=False)
+    
     class Meta:
         model = Quiz
         fields = [
@@ -52,6 +98,13 @@ class QuizSerializer(serializers.ModelSerializer):
         return instance
 
 class QuizListSerializer(serializers.ModelSerializer):
+    """
+    Serializer to list all available quiz
+
+    Fields:
+        - id: Primary key of the quiz.
+        - quiz_name: Name of the quiz
+    """
     class Meta:
         model = Quiz
         fields = [
@@ -60,6 +113,22 @@ class QuizListSerializer(serializers.ModelSerializer):
         ]
 
 class QuizDetailSerializer(serializers.ModelSerializer):
+    """
+    Serializer to give detail about a quiz
+    It include computation field for question type and total question for the the quiz
+
+    Fields:
+        - id: PRimary key
+        - quiz_name: Name of the quiz
+        - question_type: Question type
+        - tota_question: Total question for a quiz
+
+    qet_question_type
+        A function that get the question type of the first question and return it
+
+    qet_total_question
+        A funtion that count and return all question in a quiz
+    """
     question_type = serializers.SerializerMethodField()
     total_question = serializers.SerializerMethodField()
 
@@ -75,7 +144,6 @@ class QuizDetailSerializer(serializers.ModelSerializer):
     def get_question_type(self, obj):
         """
         Returns the question_type.
-        If your quiz has multiple types, you can decide how to handle it.
         """
         first_question = obj.questions.first()
         return first_question.question_type if first_question else None
@@ -84,6 +152,16 @@ class QuizDetailSerializer(serializers.ModelSerializer):
         return obj.questions.count()
 
 class BulkQuestionListSerializer(serializers.ListSerializer):
+    """
+    Serializer used to add more than one question to a quiz.
+
+    create(validated_data):
+        Overides the default create method to handle bulk creation of questions and options.
+        - Creates multiple Question instances along with their associated Option instances in a single operation.
+        - Uses the context to get the quiz to which the questions belong.
+        - Iterates over the validated data to create each question and its options.
+        - Returns the list of created Question instances.
+    """
     def create(self, validated_data):
         quiz = self.context['quiz']
         questions = []
@@ -103,8 +181,21 @@ class BulkQuestionListSerializer(serializers.ListSerializer):
         return questions
 
 class QuizQuestionSerializer(serializers.ModelSerializer):
-    options = OptionSerializer(many=True, required=False)
-    
+    """
+    Serializer for adding question to a quiz in bulk.
+
+    Fields:
+        - id: Primary key for the question
+        - question_type: The question type of the question whether OBJ or MCQ.
+        - question_text: The actual question to answer.
+        - explanation: Explanation for the correct answer.
+        - options: Nested option for Option, which is required.
+
+    Meta:
+        - list_serializer_class: Specifies the use of BulkQuestionListSerializer for bulk operations.
+    """
+    options = OptionSerializer(many=True)
+
     class Meta:
         model = Question
         fields = [
