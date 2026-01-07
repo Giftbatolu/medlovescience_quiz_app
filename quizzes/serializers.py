@@ -193,6 +193,12 @@ class QuizQuestionSerializer(serializers.ModelSerializer):
 
     Meta:
         - list_serializer_class: Specifies the use of BulkQuestionListSerializer for bulk operations.
+
+    create(validated_data):
+        Overrides the default create method to handle nested question and option data for a single question.
+    
+    update(instance, validated_data):
+        Overrides the default update method to handle nested question and option data for updating a question.
     """
     options = OptionSerializer(many=True)
 
@@ -209,9 +215,25 @@ class QuizQuestionSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         options_data = validated_data.pop('options', [])
-        question = Question.objects.create(**validated_data)
+        quiz = self.context.get('quiz')
+        question = Question.objects.create(quiz=quiz, **validated_data)
 
         for option_data in options_data:
             Option.objects.create(question=question, **option_data)
 
         return question
+
+    def update(self, instance, validated_data):
+        option_data = validated_data.pop('options', [])
+
+        instance.question_type = validated_data.get('question_type', instance.question_type)
+        instance.question_text = validated_data.get('question_text', instance.question_text)
+        instance.explanation = validated_data.get('explanation', instance.explanation)
+        instance.save()
+
+        if option_data:
+            instance.options.all().delete()
+            for option in option_data:
+                Option.objects.create(question=instance, **option)
+
+        return instance

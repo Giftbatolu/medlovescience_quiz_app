@@ -2,6 +2,8 @@ from django.shortcuts import get_object_or_404
 from . serializers import QuizSerializer, QuizListSerializer, QuizDetailSerializer, QuizQuestionSerializer
 from .models import Quiz, Question, Option
 from rest_framework import viewsets
+from rest_framework.response import Response
+from rest_framework import status
 
 class QuizViewSet(viewsets.ModelViewSet):
     """
@@ -39,6 +41,21 @@ class QuestionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Question.objects.filter(quiz_id=self.kwargs['quiz_pk'])
+
+    def create(self, request, *args, **kwargs):
+        quiz = get_object_or_404(Quiz, pk=self.kwargs['quiz_pk'])
+
+        is_bulk = isinstance(request.data, list)
+
+        serializer = self.get_serializer(
+            data=request.data,
+            many=is_bulk,
+            context={'quiz': quiz}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def perform_create(self, serializer):
         quiz = get_object_or_404(Quiz, pk=self.kwargs.get('quiz_pk'))
