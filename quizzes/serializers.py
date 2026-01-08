@@ -64,6 +64,9 @@ class QuizSerializer(serializers.ModelSerializer):
 
     update(instance, validate):
         Update the quiz name of the instance of created quiz
+        
+    validate_quiz_name(self, value):
+        validate to ensure unique quiz name i.e n two with the same quiz title
     """
 
     questions = QuestionSerializer(many=True, required=False)
@@ -96,6 +99,11 @@ class QuizSerializer(serializers.ModelSerializer):
         instance.quiz_name = validated_data.get('quiz_name', instance.quiz_name)
         instance.save()
         return instance
+    
+    def validate_quiz_name(self, value):
+        if Quiz.objects.filter(quiz_name__iexact=value).exists():
+            raise serializers.ValidationError("Quiz title already exists.")
+        return value
 
 class QuizListSerializer(serializers.ModelSerializer):
     """
