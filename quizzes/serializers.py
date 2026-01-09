@@ -207,6 +207,9 @@ class QuizQuestionSerializer(serializers.ModelSerializer):
     
     update(instance, validated_data):
         Overrides the default update method to handle nested question and option data for updating a question.
+        
+    validate(self, data):
+        Validate that no question appear twice in a quiz
     """
     options = OptionSerializer(many=True)
 
@@ -245,3 +248,12 @@ class QuizQuestionSerializer(serializers.ModelSerializer):
                 Option.objects.create(question=instance, **option)
 
         return instance
+    
+    def validate(self, data):
+        quiz = data.get("quiz")
+        question_text = data.get("question_text")
+
+        if Question.objects.filter(quiz=quiz, question_text__iexact=question_text).exists():
+            raise serializers.ValidationError("This question already exists in this quiz.")
+
+        return data
