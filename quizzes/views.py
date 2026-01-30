@@ -56,7 +56,3 @@ class QuestionViewSet(viewsets.ModelViewSet):
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def perform_create(self, serializer):
-        quiz = get_object_or_404(Quiz, pk=self.kwargs.get('quiz_pk'))
-        serializer.save(quiz=quiz)

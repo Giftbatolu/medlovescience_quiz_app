@@ -15,15 +15,15 @@ class Question(models.Model):
     question_type = models.CharField(max_length=10, choices=QUESTION_TYPES)
     question_text = models.TextField()
     explanation = models.TextField(blank=True)
-    
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=["quiz", "question_text"],
                 name="unique_question_per_quiz"
-            )
-        ]
-
+        )
+    ]
+    
 class Option(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='options')
     option_text = models.TextField()

@@ -249,11 +249,23 @@ class QuizQuestionSerializer(serializers.ModelSerializer):
 
         return instance
     
-    def validate(self, data):
-        quiz = data.get("quiz")
-        question_text = data.get("question_text")
+    # def validate(self, data):
+    #     quiz = data.get("quiz")
+    #     question_text = data.get("question_text")
 
-        if Question.objects.filter(quiz=quiz, question_text__iexact=question_text).exists():
+    #     if Question.objects.filter(quiz=quiz, question_text__iexact=question_text).exists():
+    #         raise serializers.ValidationError("This question already exists in this quiz.")
+
+    #     return data
+    def validate(self, data):
+        quiz = self.context.get("quiz")
+        question_text = data.get("question_text")
+   
+        qs = Question.objects.filter(quiz=quiz, question_text__iexact=question_text)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
             raise serializers.ValidationError("This question already exists in this quiz.")
 
         return data
